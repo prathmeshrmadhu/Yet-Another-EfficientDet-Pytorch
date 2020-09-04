@@ -12,7 +12,7 @@ import yaml
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from efficientdet.dataset import CocoDataset, Resizer, Normalizer, Augmenter, collater
+from efficientdet.dataset import EFIDataset, Resizer, Normalizer, Augmenter, collater
 from backbone import EfficientDetBackbone
 from tensorboardX import SummaryWriter
 import numpy as np
@@ -33,10 +33,13 @@ class Params:
 
 def get_args():
     parser = argparse.ArgumentParser('Yet Another EfficientDet Pytorch: SOTA object detection network - Zylo117')
+    parser.add_argument('--train_csv_path', '-train_csv_path', required=True, help='path to the training data csv')
+    parser.add_argument('--valid_csv_path', '-valid_csv_path', required=True, help='path to the validation data csv')
+    parser.add_argument('--all_classes_dict_path', '-all_classes_dict_path', required=True, help='path to classes dict')
     parser.add_argument('-p', '--project', type=str, default='coco', help='project file that contains parameters')
     parser.add_argument('-c', '--compound_coef', type=int, default=0, help='coefficients of efficientdet')
     parser.add_argument('-n', '--num_workers', type=int, default=12, help='num_workers of dataloader')
-    parser.add_argument('--batch_size', type=int, default=12, help='The number of images per batch among all devices')
+    parser.add_argument('--batch_size', type=int, default=8, help='The number of images per batch among all devices')
     parser.add_argument('--head_only', type=boolean_string, default=False,
                         help='whether finetunes only the regressor and the classifier, '
                              'useful in early stage convergence or small/easy dataset')
@@ -46,7 +49,7 @@ def get_args():
                                                                    ' very final stage then switch to \'sgd\'')
     parser.add_argument('--num_epochs', type=int, default=500)
     parser.add_argument('--val_interval', type=int, default=1, help='Number of epoches between valing phases')
-    parser.add_argument('--save_interval', type=int, default=500, help='Number of steps between saving')
+    parser.add_argument('--save_interval', type=int, default=1000, help='Number of steps between saving')
     parser.add_argument('--es_min_delta', type=float, default=0.0,
                         help='Early stopping\'s parameter: minimum change loss to qualify as an improvement')
     parser.add_argument('--es_patience', type=int, default=0,
@@ -115,13 +118,13 @@ def train(opt):
                   'num_workers': opt.num_workers}
 
     input_sizes = [512, 640, 768, 896, 1024, 1280, 1280, 1536]
-    training_set = CocoDataset(root_dir=os.path.join(opt.data_path, params.project_name), set=params.train_set,
-                               transform=transforms.Compose([Normalizer(mean=params.mean, std=params.std),
+    training_set = EFIDataset(root_dir=opt.data_path, csv_path=opt.train_csv_path, all_classes_dict_path=opt.all_classes_dict_path,
+                             transform=transforms.Compose([Normalizer(mean=params.mean, std=params.std),
                                                              Augmenter(),
                                                              Resizer(input_sizes[opt.compound_coef])]))
     training_generator = DataLoader(training_set, **training_params)
 
-    val_set = CocoDataset(root_dir=os.path.join(opt.data_path, params.project_name), set=params.val_set,
+    val_set = EFIDataset(root_dir=opt.data_path, csv_path=opt.valid_csv_path, all_classes_dict_path=opt.all_classes_dict_path,
                           transform=transforms.Compose([Normalizer(mean=params.mean, std=params.std),
                                                         Resizer(input_sizes[opt.compound_coef])]))
     val_generator = DataLoader(val_set, **val_params)

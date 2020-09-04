@@ -1,13 +1,17 @@
-COCO_CLASSES = ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat",
-                "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog",
-                "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
-                "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite",
-                "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle",
-                "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange",
-                "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch", "potted plant",
-                "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
-                "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
-                "teddy bear", "hair drier", "toothbrush"]
+# COCO_CLASSES = ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat",
+#                 "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog",
+#                 "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
+#                 "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite",
+#                 "baseball bat", "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle",
+#                 "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange",
+#                 "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch", "potted plant",
+#                 "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
+#                 "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
+#                 "teddy bear", "hair drier", "toothbrush"]
+
+# EFI_ART_CLASSES = [""]
+
+EFI_CLASSARCH_CLASSES = ['palmette', 'spear', 'wreath (worn)', 'column', 'lyre', 'dolphin', 'shield', 'altar', 'vessel (kantharos)', 'bow', 'sword', 'cock', 'winged sandal', 'Eros', 'vessel', 'club', 'trident', 'thyrsos', 'kerykeion', 'quiver', 'stick', 'petasos', 'scepter', 'torch', 'tripod', 'arrow', 'lions skin (headdress)', 'aulos', 'phiale', 'fish', 'wreath', 'lion', 'cornucopia', 'door', 'centaur', 'sphinx', 'stephane (bride)', 'dog', 'thunderbolt', 'vessel (oinochoe)', 'hoop', 'vessel (amphora)', 'owl', 'tauros', 'phrygian cap', 'kantharos', 'thymiaterion', 'pomegranate', 'hippocamp', 'basket', 'box', 'lions skin', 'axe', 'chimaira', 'pom', 'ship', 'panther', 'pegasus', 'harp', 'ram', 'octopus', 'griffin', 'vessel (loutrophoros)', 'bed', 'hand-held fan', 'taenia', 'winged sandals', 'harpe']
 
 colors = [(39, 129, 113), (164, 80, 133), (83, 122, 114), (99, 81, 172), (95, 56, 104), (37, 84, 86), (14, 89, 122),
           (80, 7, 65), (10, 102, 25), (90, 185, 109), (106, 110, 132), (169, 158, 85), (188, 185, 26), (103, 1, 17),
@@ -24,3 +28,4 @@ colors = [(39, 129, 113), (164, 80, 133), (83, 122, 114), (99, 81, 172), (95, 56
           (129, 87, 143), (49, 87, 40), (128, 62, 120), (73, 85, 148), (28, 144, 118), (29, 9, 24), (175, 45, 108),
           (81, 175, 64), (178, 19, 157), (74, 188, 190), (18, 114, 2), (62, 128, 96), (21, 3, 150), (0, 6, 95),
           (2, 20, 184), (122, 37, 185)]
+

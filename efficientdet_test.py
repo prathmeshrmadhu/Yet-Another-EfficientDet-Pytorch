@@ -3,6 +3,10 @@
 """
 Simple Inference Script of EfficientDet-Pytorch
 """
+import os, pdb
+import argparse
+
+import pandas as pd
 import time
 import torch
 from torch.backends import cudnn
@@ -15,9 +19,31 @@ import numpy as np
 from efficientdet.utils import BBoxTransform, ClipBoxes
 from utils.utils import preprocess, invert_affine, postprocess, STANDARD_COLORS, standard_to_bgr, get_index_label, plot_one_box
 
+parser = argparse.ArgumentParser('Yet Another EfficientDet Pytorch: SOTA object detection network - Zylo117')
+parser.add_argument('--data_path', type=str, default='datasets/', help='the root folder of dataset')
+parser.add_argument('--val_csv', '-val_csv', required=True, help='path to validation csv')
+parser.add_argument('--model_path', '-model_path', required=True, help='path to trained model')
+parser.add_argument('-p', '--project', required=True, help='project to be chosen from ["arthist","classarch", "chrisarch"]')
+parser.add_argument('-m', '--mode', required=True, help='train or valid mode?')
+args = vars(parser.parse_args())
+
+PROJECT = args['project']
+MODE = args['mode']
+MODEL_PATH = args['model_path']
+
 compound_coef = 0
 force_input_size = None  # set None to use default size
-img_path = 'test/img.png'
+data_folder = args['data_path']
+img_save_folder = 'results/' + PROJECT + '/' + MODE 
+
+if not os.path.isdir(img_save_folder):
+    os.makedirs(img_save_folder)
+
+validation_df = pd.read_csv(args['val_csv'])
+columns = ['filename', 'xmin', 'ymin', 'xmax', 'ymax', 'class']
+validation_df.columns = columns
+all_images = list(validation_df['filename'].values)
+all_images = [os.path.join(data_folder, i.split('latest/')[-1]) for i in all_images]
 
 # replace this part with your project's anchor config
 anchor_ratios = [(1.0, 1.0), (1.4, 0.7), (0.7, 1.4)]
@@ -31,102 +57,109 @@ use_float16 = False
 cudnn.fastest = True
 cudnn.benchmark = True
 
-obj_list = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
-            'fire hydrant', '', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep',
-            'cow', 'elephant', 'bear', 'zebra', 'giraffe', '', 'backpack', 'umbrella', '', '', 'handbag', 'tie',
-            'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove',
-            'skateboard', 'surfboard', 'tennis racket', 'bottle', '', 'wine glass', 'cup', 'fork', 'knife', 'spoon',
-            'bowl', 'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut',
-            'cake', 'chair', 'couch', 'potted plant', 'bed', '', 'dining table', '', '', 'toilet', '', 'tv',
-            'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink',
-            'refrigerator', '', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier',
-            'toothbrush']
+if PROJECT == 'arthist':
+    obj_list = ['putto', 'mary', 'gabriel', 'book', 'column', 'dove', 'bookrest', 'flower', 'angel', 'annunciation', 'flower vase', 'speech scroll', 'god', 'scepter', 'bed', 'basket', 'stool', 'vase', 'jesus child', 'cat', 'window', 'door'] 
+elif PROJECT == 'classarch':
+    obj_list = ['palmette', 'spear', 'wreath (worn)', 'column', 'lyre', 'dolphin', 'shield', 'altar', 'vessel (kantharos)', 'bow', 'sword', 'cock', 'winged sandal', 'Eros', 'vessel', 'club', 'trident', 'thyrsos', 'kerykeion', 'quiver', 'stick', 'petasos', 'scepter', 'torch', 'tripod', 'arrow', 'lions skin (headdress)', 'aulos', 'phiale', 'fish', 'wreath', 'lion', 'cornucopia', 'door', 'centaur', 'sphinx', 'stephane (bride)', 'dog', 'thunderbolt', 'vessel (oinochoe)', 'hoop', 'vessel (amphora)', 'owl', 'tauros', 'phrygian cap', 'kantharos', 'thymiaterion', 'pomegranate', 'hippocamp', 'basket', 'box', 'lions skin', 'axe', 'chimaira', 'pom', 'ship', 'panther', 'pegasus', 'harp', 'ram', 'octopus', 'griffin', 'vessel (loutrophoros)', 'bed', 'hand-held fan', 'taenia', 'winged sandals', 'harpe']
+elif PROJECT == 'chrisarch':
+    obj_list = ['basket', 'trousers', 'phrygian cap', 'cape', 'bringing object', 'servant/slave/defeaded', 'fountain', 'coat', 'wool', 'stooping posture']
 
 
 color_list = standard_to_bgr(STANDARD_COLORS)
 # tf bilinear interpolation is different from any other's, just make do
 input_sizes = [512, 640, 768, 896, 1024, 1280, 1280, 1536]
 input_size = input_sizes[compound_coef] if force_input_size is None else force_input_size
-ori_imgs, framed_imgs, framed_metas = preprocess(img_path, max_size=input_size)
+ 
+for img_path in all_images[:10]:
+    try:
+        ori_imgs, framed_imgs, framed_metas = preprocess(img_path, max_size=input_size)
+    except:
+        pass
 
-if use_cuda:
-    x = torch.stack([torch.from_numpy(fi).cuda() for fi in framed_imgs], 0)
-else:
-    x = torch.stack([torch.from_numpy(fi) for fi in framed_imgs], 0)
+    if use_cuda:
+        x = torch.stack([torch.from_numpy(fi).cuda() for fi in framed_imgs], 0)
+    else:
+        x = torch.stack([torch.from_numpy(fi) for fi in framed_imgs], 0)
 
-x = x.to(torch.float32 if not use_float16 else torch.float16).permute(0, 3, 1, 2)
+    x = x.to(torch.float32 if not use_float16 else torch.float16).permute(0, 3, 1, 2)
 
-model = EfficientDetBackbone(compound_coef=compound_coef, num_classes=len(obj_list),
-                             ratios=anchor_ratios, scales=anchor_scales)
-model.load_state_dict(torch.load(f'weights/efficientdet-d{compound_coef}.pth'))
-model.requires_grad_(False)
-model.eval()
+    model = EfficientDetBackbone(compound_coef=compound_coef, num_classes=len(obj_list),
+                                 ratios=anchor_ratios, scales=anchor_scales)
+    # model.load_state_dict(torch.load(f'logs/efi_arthist/efficientdet-d{compound_coef}.pth'))
+    model.load_state_dict(torch.load(MODEL_PATH))
+    model.requires_grad_(False)
+    model.eval()
 
-if use_cuda:
-    model = model.cuda()
-if use_float16:
-    model = model.half()
+    if use_cuda:
+        model = model.cuda()
+    if use_float16:
+        model = model.half()
 
-with torch.no_grad():
-    features, regression, classification, anchors = model(x)
+    with torch.no_grad():
+        features, regression, classification, anchors = model(x)
 
-    regressBoxes = BBoxTransform()
-    clipBoxes = ClipBoxes()
-
-    out = postprocess(x,
-                      anchors, regression, classification,
-                      regressBoxes, clipBoxes,
-                      threshold, iou_threshold)
-
-def display(preds, imgs, imshow=True, imwrite=False):
-    for i in range(len(imgs)):
-        if len(preds[i]['rois']) == 0:
-            continue
-
-        for j in range(len(preds[i]['rois'])):
-            x1, y1, x2, y2 = preds[i]['rois'][j].astype(np.int)
-            obj = obj_list[preds[i]['class_ids'][j]]
-            score = float(preds[i]['scores'][j])
-            plot_one_box(imgs[i], [x1, y1, x2, y2], label=obj,score=score,color=color_list[get_index_label(obj, obj_list)])
-
-
-        if imshow:
-            cv2.imshow('img', imgs[i])
-            cv2.waitKey(0)
-
-        if imwrite:
-            cv2.imwrite(f'test/img_inferred_d{compound_coef}_this_repo_{i}.jpg', imgs[i])
-
-
-out = invert_affine(framed_metas, out)
-display(out, ori_imgs, imshow=False, imwrite=True)
-
-print('running speed test...')
-with torch.no_grad():
-    print('test1: model inferring and postprocessing')
-    print('inferring image for 10 times...')
-    t1 = time.time()
-    for _ in range(10):
-        _, regression, classification, anchors = model(x)
+        regressBoxes = BBoxTransform()
+        clipBoxes = ClipBoxes()
 
         out = postprocess(x,
                           anchors, regression, classification,
                           regressBoxes, clipBoxes,
                           threshold, iou_threshold)
-        out = invert_affine(framed_metas, out)
 
-    t2 = time.time()
-    tact_time = (t2 - t1) / 10
-    print(f'{tact_time} seconds, {1 / tact_time} FPS, @batch_size 1')
+    def display(preds, imgs, imshow=True, imwrite=False):
+        for i in range(len(imgs)):
+            if len(preds[i]['rois']) == 0:
+                continue
 
-    # uncomment this if you want a extreme fps test
-    # print('test2: model inferring only')
-    # print('inferring images for batch_size 32 for 10 times...')
-    # t1 = time.time()
-    # x = torch.cat([x] * 32, 0)
-    # for _ in range(10):
-    #     _, regression, classification, anchors = model(x)
-    #
-    # t2 = time.time()
-    # tact_time = (t2 - t1) / 10
-    # print(f'{tact_time} seconds, {32 / tact_time} FPS, @batch_size 32')
+            for j in range(len(preds[i]['rois'])):
+                x1, y1, x2, y2 = preds[i]['rois'][j].astype(np.int)
+                obj = obj_list[preds[i]['class_ids'][j]]
+                score = float(preds[i]['scores'][j])
+                plot_one_box(imgs[i], [x1, y1, x2, y2], label=obj,score=score,color=color_list[get_index_label(obj, obj_list)])
+
+
+            if imshow:
+                cv2.imshow('img', imgs[i])
+                cv2.waitKey(0)
+
+            if imwrite:
+                img = img_path.split('/')[-1].split('.')[0]
+#                 pdb.set_trace()
+                img_name = f'{img}_img_inferred_d{compound_coef}_this_repo_{i}.jpg'
+                img_save_path = os.path.join(img_save_folder, img_name)
+                print (img_save_path)
+                cv2.imwrite(img_save_path, imgs[i])
+
+
+    out = invert_affine(framed_metas, out)
+    display(out, ori_imgs, imshow=False, imwrite=True)
+
+#     print('running speed test...')
+#     with torch.no_grad():
+#         print('test1: model inferring and postprocessing')
+#         print('inferring image for 10 times...')
+#         t1 = time.time()
+#         for _ in range(10):
+#             _, regression, classification, anchors = model(x)
+
+#             out = postprocess(x,
+#                               anchors, regression, classification,
+#                               regressBoxes, clipBoxes,
+#                               threshold, iou_threshold)
+#             out = invert_affine(framed_metas, out)
+
+#         t2 = time.time()
+#         tact_time = (t2 - t1) / 10
+#         print(f'{tact_time} seconds, {1 / tact_time} FPS, @batch_size 1')
+        
+        # uncomment this if you want a extreme fps test
+        # print('test2: model inferring only')
+        # print('inferring images for batch_size 32 for 10 times...')
+        # t1 = time.time()
+        # x = torch.cat([x] * 32, 0)
+        # for _ in range(10):
+        #     _, regression, classification, anchors = model(x)
+        #
+        # t2 = time.time()
+        # tact_time = (t2 - t1) / 10
+        # print(f'{tact_time} seconds, {32 / tact_time} FPS, @batch_size 32')

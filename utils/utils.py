@@ -10,7 +10,7 @@ from torch import nn
 from torchvision.ops import nms
 from torchvision.ops.boxes import batched_nms
 from typing import Union
-import uuid
+import uuid, pdb
 
 from utils.sync_batchnorm import SynchronizedBatchNorm2d
 
@@ -68,7 +68,11 @@ def aspectaware_resize_padding(image, width, height, interpolation=None, means=N
 
 def preprocess(*image_path, max_size=512, mean=(0.406, 0.456, 0.485), std=(0.225, 0.224, 0.229)):
     ori_imgs = [cv2.imread(img_path) for img_path in image_path]
-    normalized_imgs = [(img / 255 - mean) / std for img in ori_imgs]
+    try:
+        normalized_imgs = [(img / 255 - mean) / std for img in ori_imgs]
+    except Exception as e:
+        print (image_path)
+        print (e)
     imgs_meta = [aspectaware_resize_padding(img[..., ::-1], max_size, max_size,
                                             means=None) for img in normalized_imgs]
     framed_imgs = [img_meta[0] for img_meta in imgs_meta]

@@ -248,13 +248,18 @@ def process_csv_to_json_and_save(data, savepath):
             id_idx = id_idx + 1
 
         class_name = row["class"]
+        if(class_name not in class_names):
+            cur_cat_id = class_idx
+        else:
+            cur_cat_id = class_names.index(class_name) + 1
+
         cur_ann = {
             "id": len(annotations),
             "image_id": img_ids[img_name],
             "img_name": img_name,
             "filename": row["filename"],
             "bbox": f"{row['xmin']},{row['ymin']},{row['xmax']},{row['ymax']}",
-            "category_id": class_idx,
+            "category_id": cur_cat_id,
             "iscrowd": 0,
             "area": (row['ymax']-row['ymin']) * (row['xmax']-row['xmin'])
         }

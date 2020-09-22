@@ -8,7 +8,7 @@ import numpy as np
 import glob
 import argparse
 import pdb
-from CONFIG import CONFIG
+# from CONFIG import CONFIG
 
 
 COMBINE_CLASS = {
@@ -213,7 +213,7 @@ def get_bounding_box_csv(labeled_data_path, number_classes):
     return custom_data_df, custom_classes_dict, custom_faster_rcnn_df, all_faster_rcnn_df, all_data_df, all_classes_dict
 
 
-def process_csv_to_json_and_save(data, savepath):
+def process_csv_to_json_and_save(data, savepath, classes_dict):
     """
     Converting a csv with the annotations: (img_path, x1, y1, x2, y2, class) to a json
     to later fit the person detector model
@@ -231,7 +231,6 @@ def process_csv_to_json_and_save(data, savepath):
     img_ids = {}
     imgs = []
     id_idx = 0
-    class_idx = 1
     classes = []
     class_names = []
     for id, (index, row) in enumerate(data.iterrows()):
@@ -248,10 +247,11 @@ def process_csv_to_json_and_save(data, savepath):
             id_idx = id_idx + 1
 
         class_name = row["class"]
-        if(class_name not in class_names):
-            cur_cat_id = class_idx
-        else:
-            cur_cat_id = class_names.index(class_name) + 1
+        cur_cat_id = classes_dict[class_name] + 1
+#         if(class_name not in class_names):
+#             cur_cat_id = class_idx
+#         else:
+#             cur_cat_id = class_names.index(class_name) + 1
 
         cur_ann = {
             "id": len(annotations),
@@ -266,12 +266,11 @@ def process_csv_to_json_and_save(data, savepath):
         annotations.append(cur_ann)
         if(class_name not in class_names):
             class_ = {
-                "id": class_idx,
+                "id": cur_cat_id,
                 "name": class_name
             }
             classes.append(class_)
             class_names.append(class_name)
-            class_idx = class_idx + 1
 
     dict_data = {}
     dict_data["annotations"] = annotations

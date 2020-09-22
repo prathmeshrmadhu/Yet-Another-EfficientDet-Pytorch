@@ -293,7 +293,7 @@ def get_index_label(label, obj_list):
     return index
 
 
-def plot_one_box(img, coord, label=None, score=None, color=None, line_thickness=None):
+def plot_one_box(img, coord, label=None, score=None, color=None, line_thickness=None, font_thickness=None):
     tl = line_thickness or int(round(0.001 * max(img.shape[0:2])))  # line thickness
     color = color
     c1, c2 = (int(coord[0]), int(coord[1])), (int(coord[2]), int(coord[3]))
@@ -304,7 +304,7 @@ def plot_one_box(img, coord, label=None, score=None, color=None, line_thickness=
         t_size = cv2.getTextSize(label, 0, fontScale=float(tl) / 3, thickness=tf)[0]
         c2 = c1[0] + t_size[0]+s_size[0]+15, c1[1] - t_size[1] -3
         cv2.rectangle(img, c1, c2 , color, -1)  # filled
-        cv2.putText(img, '{}: {:.0%}'.format(label, score), (c1[0],c1[1] - 2), 0, float(tl) / 3, [0, 0, 0], thickness=tf, lineType=cv2.FONT_HERSHEY_SIMPLEX)
+        cv2.putText(img, '{}: {:.0%}'.format(label, score), (c1[0],c1[1] - 2), 0, float(tl) / 2, [0, 0, 0], thickness=tf, lineType=cv2.FONT_HERSHEY_TRIPLEX)
 
         
 color_list = standard_to_bgr(STANDARD_COLORS)

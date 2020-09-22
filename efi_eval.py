@@ -185,10 +185,16 @@ def EFI_COCO(json_path, obj_list):
 if __name__ == '__main__':
 
     
-    SET_NAME = 'efi_arthist_valset'
-    VAL_GT = 'resources_coco/efi_arthist_valid.json'
-    VAL_IMGS = '/localhome/prathmeshmadhu/work/EFI/Data/Art_history/latest/'
-    MAX_IMAGES = 100
+    if 'arthist' in args.project:
+        SET_NAME = 'efi_arthist_trainset'
+        VAL_GT = 'resources_coco/efi_arthist_train.json'
+        VAL_IMGS = '/localhome/prathmeshmadhu/work/EFI/Data/Art_history/latest/'
+    else:
+        SET_NAME = 'efi_classarch_trainset'
+        VAL_GT = 'resources_coco/efi_classarch_valid.json'
+        VAL_IMGS = '/localhome/prathmeshmadhu/work/EFI/Data/Classical_Arch/latest/'
+    MAX_IMAGES = 100000
+        
     
     coco_gt = EFI_COCO(VAL_GT, params['obj_list'])
     image_ids = coco_gt.getImgIds()[:MAX_IMAGES]
@@ -208,7 +214,7 @@ if __name__ == '__main__':
 
         evaluate_coco(VAL_IMGS, SET_NAME, image_ids, coco_gt, model)
 
-    _eval(coco_gt, image_ids, 'efi_arthist_valset_bbox_results.json')
+    _eval(coco_gt, image_ids, f'{SET_NAME}_bbox_results.json')
     
 #     SET_NAME = 'efi_arthist_valset'
 #     efi_coco_gt = EFI_COCO(obj_list, args.valid_csv_path)

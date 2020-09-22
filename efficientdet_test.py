@@ -15,6 +15,7 @@ from matplotlib import colors
 from backbone import EfficientDetBackbone
 import cv2
 import numpy as np
+import tqdm
 
 from efficientdet.utils import BBoxTransform, ClipBoxes
 from utils.utils import preprocess, invert_affine, postprocess, STANDARD_COLORS, standard_to_bgr, get_index_label, plot_one_box
@@ -70,7 +71,7 @@ color_list = standard_to_bgr(STANDARD_COLORS)
 input_sizes = [512, 640, 768, 896, 1024, 1280, 1280, 1536]
 input_size = input_sizes[compound_coef] if force_input_size is None else force_input_size
  
-for img_path in all_images[:10]:
+for img_path in tqdm.tqdm(all_images):
     try:
         ori_imgs, framed_imgs, framed_metas = preprocess(img_path, max_size=input_size)
     except:
@@ -115,7 +116,7 @@ for img_path in all_images[:10]:
                 x1, y1, x2, y2 = preds[i]['rois'][j].astype(np.int)
                 obj = obj_list[preds[i]['class_ids'][j]]
                 score = float(preds[i]['scores'][j])
-                plot_one_box(imgs[i], [x1, y1, x2, y2], label=obj,score=score,color=color_list[get_index_label(obj, obj_list)])
+                plot_one_box(imgs[i], [x1, y1, x2, y2], label=obj,score=score,color=color_list[get_index_label(obj, obj_list)], line_thickness=2)
 
 
             if imshow:
